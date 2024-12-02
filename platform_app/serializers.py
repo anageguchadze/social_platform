@@ -11,3 +11,13 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
+
+class ForumTopicsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForumTopics
+        fields = '__all__'
+
+class ForumMessagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForumMessages
+        fields = '__all__'
