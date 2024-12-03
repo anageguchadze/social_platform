@@ -22,7 +22,13 @@ class CustomUser(AbstractUser):
 
 
 class Category(models.Model):
-    category = models.CharField(max_length=255)
+    category_name = models.CharField(max_length=255)
+    description = models.TextField(default="No description")
+    is_active = models.BooleanField(default=True)  # კატეგორიის აქტიურობის მდგომარეობა
+
+    def __str__(self):
+        return self.category_name
+
     
 
 class ForumTopics(models.Model):
@@ -37,4 +43,19 @@ class ForumMessages(models.Model):
     message_body = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     topic = models.ForeignKey(ForumTopics, on_delete=models.CASCADE)
+    parent_message = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    upvotes = models.IntegerField(default=0)
+    downvotes = models.IntegerField(default=0)
+
+    def upvote(self):
+        self.upvotes += 1
+        self.save()
+
+    def downvote(self):
+        self.downvotes += 1
+        self.save()
+
+    def get_total_votes(self):
+        return self.upvotes - self.downvotes
+
 

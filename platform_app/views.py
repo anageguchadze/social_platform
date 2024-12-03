@@ -30,13 +30,8 @@ class LogoutView(APIView):
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
-    #apiview
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-
-#register
-#login
-#logout
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -50,7 +45,6 @@ class ForumMessageViewSet(viewsets.ModelViewSet):
     queryset = ForumMessages.objects.all()
     serializer_class = ForumMessagesSerializer
 
-
 class IsAdminUser(BasePermission):
     def has_permission(self, request, view):
         return request.user.role == 'admin'
@@ -59,3 +53,59 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+class ForumTopicVote(APIView):
+    def post(self, request, topic_id):
+        topic = ForumTopics.objects.get(id=topic_id)
+        action = request.data.get('action')
+        
+        if action == 'upvote':
+            topic.upvote()
+        elif action == 'downvote':
+            topic.downvote()
+        
+        return Response({"message": "Vote registered successfully!"}, status=status.HTTP_200_OK)
+
+class ForumMessageVote(APIView):
+    def post(self, request, message_id):
+        message = ForumMessages.objects.get(id=message_id)
+        action = request.data.get('action')
+        
+        if action == 'upvote':
+            message.upvote()
+        elif action == 'downvote':
+            message.downvote()
+        
+        return Response({"message": "Vote registered successfully!"}, status=status.HTTP_200_OK)
+    
+
+class ForumTopicCreate(APIView):
+    def post(self, request):
+        title = request.data.get('title')
+        category_id = request.data.get('category_id')
+        topic_category = Category.objects.get(id=category_id)
+        topic_author = request.user
+        
+        topic = ForumTopics.objects.create(
+            title=title,
+            topic_category=topic_category,
+            topic_author=topic_author
+        )
+        
+        return Response({"message": "Topic created successfully!"}, status=status.HTTP_201_CREATED)
+
+class ForumMessageCreate(APIView):
+    def post(self, request):
+        message_body = request.data.get('message_body')
+        topic_id = request.data.get('topic_id')
+        topic = ForumTopics.objects.get(id=topic_id)
+        message_user = request.user
+        
+        message = ForumMessages.objects.create(
+            message_user=message_user,
+            message_body=message_body,
+            topic=topic
+        )
+        
+        return Response({"message": "Message created successfully!"}, status=status.HTTP_201_CREATED)
