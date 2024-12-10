@@ -1,6 +1,8 @@
 from typing import Iterable
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from push_notifications.models import GCMDevice
+
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -59,3 +61,18 @@ class ForumMessages(models.Model):
         return self.upvotes - self.downvotes
 
 
+def register_device(user, registration_id):
+    device, created = GCMDevice.objects.get_or_create(user=user)
+    device.registration_id = registration_id
+    device.save()
+    return device
+
+def send_notification(user, message):
+    try:
+        # მომხმარებლის რეგისტრირებული მოწყობილობის შეზღუდვა
+        device = GCMDevice.objects.get(user=user)  # დაამოწვე, არსებობს თუ არა
+        # Push შეტყობინების გაგზავნა
+        device.send_message(message)
+        return True
+    except GCMDevice.DoesNotExist:
+        return False  # არ არსებობს მოწყობილობა

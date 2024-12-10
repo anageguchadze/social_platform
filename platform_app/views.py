@@ -7,6 +7,31 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import BasePermission
 from .models import *
 from .serializers import *
+from push_notifications.models import GCMDevice
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class RegisterDeviceView(APIView):
+    """
+    დარეგისტრირეთ Firebase Token GCMDevice-თან.
+    """
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        registration_id = request.data.get('registration_id')
+
+        if not user_id or not registration_id:
+            return Response({"error": "Missing user_id or registration_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)  # მომხმარებელი გაამოწვოს
+            # რეგისტრაცია GCMDevice-ის
+            device, created = GCMDevice.objects.get_or_create(user=user)
+            device.registration_id = registration_id
+            device.save()
+            return Response({"message": "Device registered successfully"}, status=status.HTTP_201_CREATED)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class RegistrationView(APIView):
@@ -29,15 +54,11 @@ class LogoutView(APIView):
             return Response({"error": "Invalid token or token already blacklisted."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CustomUserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
-
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-class ForumTopicsViesWet(viewsets.ModelViewSet):
+class ForumTopicsViewSet(viewsets.ModelViewSet):
     queryset = ForumTopics.objects.all()
     serializer_class = ForumTopicsSerializer
 
@@ -57,15 +78,19 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
 class ForumTopicVote(APIView):
     def post(self, request, topic_id):
-        topic = ForumTopics.objects.get(id=topic_id)
-        action = request.data.get('action')
+        try:
+            topic = ForumTopics.objects.get(id=topic_id)
+            action = request.data.get('action')
         
-        if action == 'upvote':
-            topic.upvote()
-        elif action == 'downvote':
-            topic.downvote()
-        
-        return Response({"message": "Vote registered successfully!"}, status=status.HTTP_200_OK)
+            if action == 'upvote':
+                topic.upvote()
+            elif action == 'downvote':
+                topic.downvote()
+            
+            return Response({"message": "Vote registered successfully!"}, status=status.HTTP_200_OK)
+        except ForumTopics.DoesNotExist:
+            return Response({"error": "Topic not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 class ForumMessageVote(APIView):
     def post(self, request, message_id):
@@ -109,3 +134,27 @@ class ForumMessageCreate(APIView):
         )
         
         return Response({"message": "Message created successfully!"}, status=status.HTTP_201_CREATED)
+
+    
+class SendNotificationView(APIView):
+    """
+    Push შეტყობინებების გაგზავნა GCMDevice-ის საშუალებით.
+    """
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        message = request.data.get('message')
+
+        if not user_id or not message:
+            return Response({"error": "Missing user_id or message"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+            devices = GCMDevice.objects.filter(user=user)  # ჩამოთვლა ყველა რეგისტრირებული მოწყობილობა
+            if devices.exists():
+                for device in devices:
+                    device.send_message(message)
+                return Response({"message": "Notification sent successfully"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "User device not found!"}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({"error": "User does not exist!"}, status=status.HTTP_404_NOT_FOUND)

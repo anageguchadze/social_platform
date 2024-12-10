@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'platform_app',
+    'push_notifications',
 ]
 
 MIDDLEWARE = [
@@ -128,8 +129,16 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+PUSH_NOTIFICATIONS_SETTINGS = {
+    "GCM_API_KEY": "YOUR-GCM-API-KEY-HERE",  
+    "APNS_CERTIFICATE": "/path/to/your/apns-cert.pem",  
+    "APNS_USE_SANDBOX": True,
+    "PUSH_NOTIFICATIONS_ENABLED": True
+}
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ( 
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ) 
 }
+
