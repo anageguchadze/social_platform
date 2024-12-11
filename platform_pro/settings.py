@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'platform_app',
     'push_notifications',
     'idea_block',
+    'polls_qna',
 ]
 
 MIDDLEWARE = [
