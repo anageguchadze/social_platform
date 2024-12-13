@@ -6,4 +6,5 @@ urlpatterns = [
     path('api/', include('platform_app.urls')),
     path('idea/', include('idea_block.urls')),
     path('polls_qna/', include('polls_qna.urls')),
+    path('prize_system/', include('prize_system.urls')),
 ]
