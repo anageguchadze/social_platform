@@ -22,6 +22,9 @@ urlpatterns =[
     path('auth/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
     path('auth/register/', RegistrationView.as_view(), name='register'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),
+    path('profile/<int:pk>/', UserProfileView.as_view(), name='user-profile'),
+    path('profile/edit/', UserProfileEditView.as_view(), name='edit-profile'),
+    path('profile/<int:pk>/activity/', UserActivityHistoryView.as_view(), name='user-activity-history'),
     path('register-device/', RegisterDeviceView.as_view(), name='register_device'),
     path('send-notification/', SendNotificationView.as_view(), name='send_notification'),
 ]

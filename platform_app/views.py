@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import BasePermission
@@ -9,6 +9,8 @@ from .models import *
 from .serializers import *
 from push_notifications.models import GCMDevice
 from django.contrib.auth import get_user_model
+from idea_block.models import Idea
+from polls_qna.models import Answer
 
 User = get_user_model()
 
@@ -34,6 +36,27 @@ class RegisterDeviceView(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
+class UserActivityHistoryView(APIView):
+    """
+    View a user's activity history: posts, ideas, answers.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        user = CustomUser.objects.get(pk=pk)
+
+        posts = ForumMessages.objects.filter(message_user=user).values('id', 'message_body', 'timestamp')
+        ideas = Idea.objects.filter(submitted_by=user).values('id', 'title', 'created_at')
+        answers = Answer.objects.filter(created_by=user).values('id', 'content', 'created_at')
+
+        return Response({
+            "user": user.username,
+            "posts": list(posts),
+            "ideas": list(ideas),
+            "answers": list(answers)
+        })
+
+
 class RegistrationView(APIView):
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
@@ -52,6 +75,25 @@ class LogoutView(APIView):
             return Response({"message": "Token blacklisted successfully!"}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({"error": "Invalid token or token already blacklisted."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileView(generics.RetrieveAPIView):
+    """
+    View a user's profile.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class UserProfileEditView(generics.UpdateAPIView):
+    """
+    Edit the logged-in user's profile.
+    """
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

@@ -17,10 +17,11 @@ class CustomUser(AbstractUser):
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     points = models.PositiveIntegerField(default=0)
     bio = models.TextField(blank=True, null=True)
+    interests = models.TextField(blank=True, null=True)  # New field for user interests
 
+    def __str__(self):
+        return self.username
 
-    # def save(self,*args, **kwargs):
-    #     self.points = 
 
 
 class Category(models.Model):
