@@ -100,6 +100,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    #დავამატო ფერმიშენი რომ როლების მიხედვით შეძლონ დამატება კატეგორიის
+
 class ForumTopicsViewSet(viewsets.ModelViewSet):
     queryset = ForumTopics.objects.all()
     serializer_class = ForumTopicsSerializer

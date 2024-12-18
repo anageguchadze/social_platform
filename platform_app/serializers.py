@@ -13,7 +13,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
         # Hash the password before saving
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)
-
+    
+        #პასვორდის მეორედ მოთხოვნა !
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
