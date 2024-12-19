@@ -4,17 +4,30 @@ from .models import *
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(write_only=True)  # Use a more descriptive field name
+
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password', 'role']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ['username', 'email', 'password', 'confirm_password', 'role']
+        extra_kwargs = {'password': {'write_only': True}, 'confirm_password': {'write_only': True}}
+
+    def validate(self, data):
+        """
+        Validate that the password and confirm_password fields match.
+        """
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError({"password": "Passwords must match"})
+        return data
 
     def create(self, validated_data):
-        # Hash the password before saving
+        # Remove the confirm_password field as it isn't needed for saving the user
+        validated_data.pop('confirm_password')
+
+        # Hash the password before saving it
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)
     
-        #პასვორდის მეორედ მოთხოვნა !
+        
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:

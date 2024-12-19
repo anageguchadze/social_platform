@@ -12,6 +12,7 @@ from django.contrib.auth import get_user_model
 from idea_block.models import Idea
 from polls_qna.models import Answer
 
+
 User = get_user_model()
 
 class RegisterDeviceView(APIView):
@@ -95,20 +96,33 @@ class UserProfileEditView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
 
+class IsOwnerOrReadOnly(BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit or delete it.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Allow read-only access to everyone
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return True
+        
+        # Write permissions are only allowed to the owner of the object
+        return obj.created_by == request.user  # Assuming 'created_by' is the field for the owner of ForumTopic or ForumMessage
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-
-    #დავამატო ფერმიშენი რომ როლების მიხედვით შეძლონ დამატება კატეგორიის
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 class ForumTopicsViewSet(viewsets.ModelViewSet):
     queryset = ForumTopics.objects.all()
     serializer_class = ForumTopicsSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 class ForumMessageViewSet(viewsets.ModelViewSet):
     queryset = ForumMessages.objects.all()
     serializer_class = ForumMessagesSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 class IsAdminUser(BasePermission):
     def has_permission(self, request, view):

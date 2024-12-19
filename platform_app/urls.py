@@ -17,7 +17,7 @@ router.register(r'forummessages', ForumMessageViewSet)
 
 urlpatterns =[
     path('', include(router.urls)),
-    path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/login/', TokenObtainPairView.as_view(), name='login'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
     path('auth/register/', RegistrationView.as_view(), name='register'),
